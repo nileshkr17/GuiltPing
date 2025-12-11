@@ -1,13 +1,20 @@
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { Button } from "@/components/ui/button";
 import { Download, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const InstallBanner = () => {
   const { canInstall, isInstalled, isIOS } = usePWAInstall();
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(() => {
+    return localStorage.getItem('installBannerDismissed') === 'true';
+  });
   const navigate = useNavigate();
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    localStorage.setItem('installBannerDismissed', 'true');
+  };
 
   // Don't show if already installed, dismissed, or can't install (except iOS)
   if (isInstalled || isDismissed || (!canInstall && !isIOS)) {
@@ -35,7 +42,7 @@ export const InstallBanner = () => {
             Install
           </Button>
           <button
-            onClick={() => setIsDismissed(true)}
+            onClick={handleDismiss}
             className="p-1 text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="w-4 h-4" />

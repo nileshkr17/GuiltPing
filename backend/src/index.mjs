@@ -1,0 +1,57 @@
+import 'dotenv/config';
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import morgan from 'morgan';
+import mongoose from 'mongoose';
+import { log, error as logError } from './utils/logger.mjs';
+
+import authRouter from './routes/auth.mjs';
+import checkinRouter from './routes/checkins.mjs';
+import notificationsRouter from './routes/notifications.mjs';
+import groupsRouter from './routes/groups.mjs';
+import profileRouter from './routes/profile.mjs';
+
+const app = express();
+app.use(helmet());
+app.use(express.json({ limit: '10mb' })); // Increase limit for base64 images
+app.use(cors({ origin: process.env.CORS_ORIGIN || '*', credentials: true }));
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
+app.use((req, _res, next) => {
+  log('Request start', { method: req.method, url: req.url });
+  next();
+});
+
+app.get('/health', (_req, res) => res.json({ ok: true }));
+
+app.use('/api/auth', authRouter);
+app.use('/api/checkins', checkinRouter);
+app.use('/api/notifications', notificationsRouter);
+app.use('/api/groups', groupsRouter);
+app.use('/api/profile', profileRouter);
+
+const PORT = process.env.PORT || 4000;
+const MONGO_URI = process.env.MONGO_URI;
+
+async function start() {
+  if (!MONGO_URI) {
+    console.error('Missing MONGO_URI');
+    process.exit(1);
+  }
+  await mongoose.connect(MONGO_URI);
+  app.listen(PORT, () => {
+    log(`GuiltPing backend listening on http://localhost:${PORT}`);
+  });
+}
+
+start().catch((e) => {
+  logError('Failed to start server', e);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  logError('UnhandledRejection', reason);
+});
+process.on('uncaughtException', (err) => {
+  logError('UncaughtException', err);
+});

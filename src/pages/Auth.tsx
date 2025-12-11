@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
 import { Label } from "@/components/ui/label";
 import { Zap, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
@@ -11,19 +12,39 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const { login, signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown === 0) {
+      navigate("/");
+      return;
+    }
+    const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate auth - will be replaced with real Supabase auth
-    setTimeout(() => {
+    try {
+      if (isLogin) {
+        await login(email, password);
+        toast.success("Logged in successfully.");
+        setCountdown(3);
+      } else {
+        await signup(email, password, name);
+        toast.success("Account created! Redirecting in 3...");
+        setCountdown(3);
+      }
+    } catch (err: any) {
       setIsLoading(false);
-      toast.success(isLogin ? "Welcome back!" : "Account created!");
-      navigate("/");
-    }, 1000);
+      toast.error(err?.message || "Authentication failed");
+    }
   };
 
   return (
@@ -122,21 +143,23 @@ const Auth = () => {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full h-12 rounded-xl mt-6"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="animate-pulse">Please wait...</span>
-              ) : (
-                <>
-                  {isLogin ? "Login" : "Create Account"}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
+             <Button
+               type="submit"
+               size="lg"
+               className="w-full h-12 rounded-xl mt-6"
+               disabled={isLoading || countdown !== null}
+             >
+               {countdown !== null ? (
+                 <span>Redirecting in {countdown}...</span>
+               ) : isLoading ? (
+                 <span className="animate-pulse">Please wait...</span>
+               ) : (
+                 <>
+                   {isLogin ? "Login" : "Create Account"}
+                   <ArrowRight className="w-4 h-4 ml-2" />
+                 </>
+               )}
+             </Button>
           </form>
 
           {isLogin && (

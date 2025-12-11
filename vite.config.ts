@@ -9,6 +9,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      "/api": {
+        target: process.env.VITE_API_URL || "http://localhost:4001",
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   },
   plugins: [
     react(),
@@ -73,6 +80,13 @@ export default defineConfig(({ mode }) => ({
             }
           }
         ]
+      },
+      injectManifest: {
+        injectionPoint: undefined
+      },
+      devOptions: {
+        enabled: true,
+        type: "module"
       }
     })
   ].filter(Boolean),

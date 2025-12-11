@@ -31,6 +31,11 @@ A lightweight accountability app for a small group of friends to build consisten
 - `src/lib/utils.ts`: Shared utilities
 - `public/`: Static assets and `robots.txt`
 
+Backend:
+- `backend/`: Express + MongoDB API, JWT auth, check-ins, and a cron worker.
+- Start API: `cd backend && npm install && npm run dev`
+- Run cron: `cd backend && npm run summary`
+
 Daily Summary (8 PM):
 - A scheduler (server-side or serverless cron) aggregates check-ins and dispatches a Web Push or a backend-driven notification to all group members.
 - Client PWA subscribes to push notifications and displays the summary.
@@ -101,22 +106,38 @@ There are two recommended approaches:
 Workflow:
 1. Users submit daily check-ins via the UI (`CheckInButton`).
 2. At 8 PM, the backend aggregates completion states and constructs the summary.
-3. Backend sends a push notification to all subscribed members.
+3. Backend sends a push notification to all subscribed members (Web Push via VAPID).
 4. Client PWA displays the summary (completed vs. not completed, streaks optional).
 
 ### Backend Cron Example
-- See `server/cron.ts` for a minimal Node script using `node-cron`.
+- See `backend/src/cron.mjs` for a minimal Node script using `node-cron`.
 ```zsh
-# install dependency
-npm install node-cron
-# run locally (uses UTC unless set)
-SUMMARY_CRON="0 20 * * *" SUMMARY_TIMEZONE="Etc/UTC" node server/cron.mjs
+cd backend
+npm install
+npm run summary
 ```
 
 ## PWA & Push
 - The app uses hooks like `usePushNotifications` and `usePWAInstall` to manage subscriptions and install prompts.
 - Ensure service worker registration and VAPID keys are configured on the backend.
 - On iOS/macOS Safari, push requires user consent and HTTPS.
+
+### Backend Push Endpoints
+- `POST /api/notifications/subscribe` (auth required): store `{ endpoint, keys: { p256dh, auth } }` for the signed-in user.
+- `POST /api/notifications/unsubscribe` (auth required): remove a subscription by `endpoint`.
+- `POST /api/notifications/test` (auth required): send a test Web Push to the user’s subscriptions.
+
+Backend config (in `backend/.env`):
+```
+VAPID_PUBLIC_KEY=...
+VAPID_PRIVATE_KEY=...
+VAPID_SUBJECT=mailto:maintainer@guiltping.app
+```
+
+Frontend subscription flow:
+- The app fetches the VAPID public key from `GET /api/notifications/public-key`.
+- Service worker is registered via VitePWA (`registerType: autoUpdate`).
+- `usePushNotifications` subscribes with `PushManager.subscribe` and posts the subscription to `POST /api/notifications/subscribe`.
 
 ## Data Model (Conceptual)
 - Users: id, name, pushSubscription, streak

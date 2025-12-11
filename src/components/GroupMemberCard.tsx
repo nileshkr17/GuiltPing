@@ -1,27 +1,34 @@
 import { Check, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface GroupMemberCardProps {
   name: string;
   isCompleted: boolean;
   streak: number;
   isCurrentUser?: boolean;
+  onClick?: () => void;
+  avatar?: string;
 }
 
-export const GroupMemberCard = ({ name, isCompleted, streak, isCurrentUser }: GroupMemberCardProps) => {
+export const GroupMemberCard = ({ name, isCompleted, streak, isCurrentUser, onClick, avatar }: GroupMemberCardProps) => {
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   
   return (
-    <div className={cn(
-      "flex items-center gap-4 p-4 rounded-xl glass transition-all duration-300",
-      isCompleted && "bg-success/10 border-success/30",
-      isCurrentUser && "ring-2 ring-primary/30"
-    )}>
+    <div 
+      className={cn(
+        "flex items-center gap-4 p-4 rounded-xl glass transition-all duration-300",
+        isCompleted && "bg-success/10 border-success/30",
+        isCurrentUser && "ring-2 ring-primary/30 cursor-pointer hover:ring-primary/50",
+        isCurrentUser && onClick && "active:scale-[0.98]"
+      )}
+      onClick={isCurrentUser ? onClick : undefined}
+    >
       <Avatar className={cn(
         "h-12 w-12 transition-all duration-300",
         isCompleted ? "ring-2 ring-success" : "ring-2 ring-muted"
       )}>
+        {avatar && <AvatarImage src={avatar} alt={name} />}
         <AvatarFallback className={cn(
           "font-semibold text-sm",
           isCompleted ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"
