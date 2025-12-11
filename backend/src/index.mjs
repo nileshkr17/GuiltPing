@@ -20,6 +20,7 @@ app.use(express.json({ limit: '10mb' })); // Increase limit for base64 images
 const allowedOrigins = [
   'http://localhost:8080',
   'https://guiltping.netlify.app',
+  'https://guilt-ping.vercel.app',
   process.env.CORS_ORIGIN
 ].filter(Boolean);
 
@@ -28,8 +29,8 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
     
-    // Allow all origins in development or if CORS_ORIGIN is '*'
-    if (process.env.CORS_ORIGIN === '*' || process.env.NODE_ENV !== 'production') {
+    // Allow all origins if CORS_ORIGIN is '*'
+    if (process.env.CORS_ORIGIN === '*') {
       return callback(null, true);
     }
     
@@ -38,6 +39,8 @@ app.use(cors({
       return callback(null, true);
     }
     
+    // Log blocked origin for debugging
+    log(`CORS blocked origin: ${origin}`);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true 
