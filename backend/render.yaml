@@ -18,5 +18,7 @@ services:
         sync: false
       - key: VAPID_PRIVATE_KEY
         sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:nileshkr17@example.com
       - key: CORS_ORIGIN
         value: '*'
