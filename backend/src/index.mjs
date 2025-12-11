@@ -15,7 +15,34 @@ import profileRouter from './routes/profile.mjs';
 const app = express();
 app.use(helmet());
 app.use(express.json({ limit: '10mb' })); // Increase limit for base64 images
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*', credentials: true }));
+
+// CORS configuration - allow multiple origins
+const allowedOrigins = [
+  'http://localhost:8080',
+  'https://guiltping.netlify.app',
+  process.env.CORS_ORIGIN
+].filter(Boolean);
+
+app.use(cors({ 
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Allow all origins in development or if CORS_ORIGIN is '*'
+    if (process.env.CORS_ORIGIN === '*' || process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true 
+}));
+
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
 app.use((req, _res, next) => {
   log('Request start', { method: req.method, url: req.url });
