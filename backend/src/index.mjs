@@ -5,6 +5,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import { log, error as logError } from './utils/logger.mjs';
+import { startCron } from './cron.mjs';
 
 import authRouter from './routes/auth.mjs';
 import checkinRouter from './routes/checkins.mjs';
@@ -24,26 +25,26 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN
 ].filter(Boolean);
 
-app.use(cors({ 
+app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
-    
+
     // Allow all origins if CORS_ORIGIN is '*'
     if (process.env.CORS_ORIGIN === '*') {
       return callback(null, true);
     }
-    
+
     // Check if origin is in allowed list
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    
+
     // Log blocked origin for debugging
     log(`CORS blocked origin: ${origin}`);
     callback(new Error('Not allowed by CORS'));
   },
-  credentials: true 
+  credentials: true
 }));
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
@@ -69,6 +70,7 @@ async function start() {
     process.exit(1);
   }
   await mongoose.connect(MONGO_URI);
+  startCron();
   app.listen(PORT, () => {
     log(`GuiltPing backend listening on http://localhost:${PORT}`);
   });

@@ -9,11 +9,12 @@ import { ChevronLeft, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
+import { ModeToggle } from "@/components/mode-toggle";
 
 const AccountSettings = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  
+
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -38,7 +39,7 @@ const AccountSettings = () => {
       toast.error("Passwords don't match");
       return;
     }
-    
+
     if (newPassword.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
@@ -97,7 +98,7 @@ const AccountSettings = () => {
         {/* Profile Information */}
         <div className="glass rounded-2xl p-6 mb-6 animate-fade-in">
           <h3 className="font-semibold text-foreground mb-4">Profile Information</h3>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
@@ -124,8 +125,8 @@ const AccountSettings = () => {
               </p>
             </div>
 
-            <Button 
-              onClick={handleSaveProfile} 
+            <Button
+              onClick={handleSaveProfile}
               disabled={saving}
               className="w-full"
             >
@@ -138,7 +139,7 @@ const AccountSettings = () => {
         {/* Change Password */}
         <div className="glass rounded-2xl p-6 mb-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <h3 className="font-semibold text-foreground mb-4">Change Password</h3>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="currentPassword">Current Password</Label>
@@ -173,8 +174,8 @@ const AccountSettings = () => {
               />
             </div>
 
-            <Button 
-              onClick={handleChangePassword} 
+            <Button
+              onClick={handleChangePassword}
               disabled={saving || !currentPassword || !newPassword || !confirmPassword}
               variant="secondary"
               className="w-full"
@@ -187,13 +188,14 @@ const AccountSettings = () => {
         {/* Preferences */}
         <div className="glass rounded-2xl p-6 mb-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
           <h3 className="font-semibold text-foreground mb-4">Preferences</h3>
-          
+
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors">
               <div>
                 <p className="font-medium text-foreground">Theme</p>
-                <p className="text-sm text-muted-foreground">System default</p>
+                <p className="text-sm text-muted-foreground">Select your preference</p>
               </div>
+              <ModeToggle />
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors">
@@ -218,8 +220,8 @@ const AccountSettings = () => {
           <p className="text-sm text-muted-foreground mb-4">
             Once you delete your account, there is no going back. Please be certain.
           </p>
-          
-          <Button 
+
+          <Button
             onClick={handleDeleteAccount}
             variant="destructive"
             className="w-full"
